@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skull Sensi | Dados do Aparelho</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Teko:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="glass-card">
+        <h2 class="glitch-title">ANÁLISE DE <br><span>HARDWARE</span></h2>
+        <p class="subtitle">Insira os dados do seu aparelho para a IA calcular a calibração perfeita.</p>
+
+        <select id="device" class="input-glass">
+            <option value="" disabled selected>Sistema Operacional</option>
+            <option value="Android">Android</option>
+            <option value="iPhone">iPhone (iOS)</option>
+        </select>
+
+        <input type="text" id="model" class="input-glass" placeholder="Modelo. Ex: Poco X5, iPhone 11...">
+
+        <select id="lag" class="input-glass">
+            <option value="" disabled selected>Desempenho no Jogo</option>
+            <option value="Sim">Aparelho trava muito</option>
+            <option value="As vezes">Aparelho trava às vezes</option>
+            <option value="Nao">Roda liso (Competitivo)</option>
+        </select>
+
+        <button onclick="gerar()" class="btn-premium">
+            INICIAR ESCANEAMENTO
+            <span class="btn-glow"></span>
+        </button>
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+</html>

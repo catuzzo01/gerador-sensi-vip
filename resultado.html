@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensi V.I.P Liberada!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Teko:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="glass-card">
+        <h2 class="glitch-title" style="color: #00ff00;">ACESSO <br><span style="color: #fff; text-shadow: 0 0 15px #00ff00;">LIBERADO!</span></h2>
+        
+        <div class="device-badge" id="celular" style="background: rgba(0,255,0,0.1); border-color: #00ff00; color: #00ff00;">
+            Aparelho detectado...
+        </div>
+
+        <p class="subtitle" id="mensagem-status" style="margin-bottom: 20px; color: #fff;">Tire print da sua calibração V.I.P abaixo e aplique no jogo.</p>
+
+       <div class="locked-sensi" id="caixa-sensi" style="background: rgba(0,0,0,0.8); border: 1px solid #00ff00; padding: 30px; border-radius: 12px; display: none;">
+            <p style="color:#00ff00; font-weight:bold; margin-bottom:15px; font-size: 18px;">🔓 SENSI OTIMIZADA</p>
+            <p style="color:#fff; margin-bottom:5px;">DPI: <span style="color:#ff4500; font-weight:bold;">850</span></p>
+            <p style="color:#fff; margin-bottom:5px;">Geral: <span style="color:#ff4500; font-weight:bold;">98</span></p>
+            <p style="color:#fff; margin-bottom:5px;">Red Dot: <span style="color:#ff4500; font-weight:bold;">100</span></p>
+            <p style="color:#fff; margin-bottom:5px;">Mira 2x: <span style="color:#ff4500; font-weight:bold;">95</span></p>
+            <p style="color:#fff; margin-bottom:5px;">Mira 4x: <span style="color:#ff4500; font-weight:bold;">90</span></p>
+            <p style="color:#fff; margin-bottom:5px;">Botão de Tiro: <span style="color:#ff4500; font-weight:bold;">55%</span></p>
+        </div>
+
+    </div>
+
+    <script>
+        // Mostra o celular
+        let modelo = localStorage.getItem("modelo");
+        if(modelo) {
+            document.getElementById("celular").innerText = "Dispositivo: " + modelo;
+        }
+
+        // LEÃO DE CHÁCARA: Só fica na página se pagou
+        async function blindarPagina() {
+            const comprovante = localStorage.getItem("comprovantePix");
+
+            // Se chegou sem comprovante, chuta pro pagamento
+            if(!comprovante) {
+                alert("Acesso Negado! Você precisa gerar o PIX para liberar a Sensi.");
+                window.location.href = "pagamento.html";
+                return;
+            }
+
+            // Vai no servidor confirmar se não é comprovante falso
+            try {
+                const resposta = await fetch(`http://localhost:3000/api/status/${comprovante}`);
+                const dados = await resposta.json();
+
+                if(dados.status !== 'PAGO') {
+                    alert("Seu pagamento ainda não foi confirmado. Aguarde ou realize o PIX.");
+                    window.location.href = "pagamento.html";
+                } else {
+                    // DEU BOM! Faz a caixa da sensi aparecer pra quem pagou
+                    document.getElementById('caixa-sensi').style.display = "block";
+                    document.getElementById('mensagem-status').innerText = "✅ Acesso Liberado. Tire print da sua Sensi V.I.P!";
+                }
+                
+            } catch(erro) {
+                console.error("Erro na segurança:", erro);
+            }
+        } // <--- Faltava essa chave aqui para fechar a função blindarPagina()
+
+        blindarPagina();
+    </script>
+
+</body>
+</html>

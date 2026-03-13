@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skull Sensi | Pagamento V.I.P</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Teko:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Estilos do PIX que começam invisíveis */
+        .qr-container {
+            background: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            display: none; /* COMEÇA ESCONDIDO */
+            margin: 20px auto;
+            border: 3px solid #ff4500;
+            box-shadow: 0 0 20px rgba(255, 69, 0, 0.4);
+            width: max-content;
+        }
+        
+        .qr-container img {
+            width: 180px;
+            height: 180px;
+            display: block;
+        }
+
+        .pix-code-box {
+            display: none; /* COMEÇA ESCONDIDO */
+            align-items: center;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid rgba(255, 69, 0, 0.4);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 25px;
+        }
+
+        .pix-code-box input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #aaa;
+            font-family: monospace;
+            font-size: 12px;
+            outline: none;
+            padding-right: 10px;
+        }
+
+        .status-pagamento {
+            margin-top: 20px;
+            font-size: 13px;
+            color: #ffc107;
+            display: none; /* COMEÇA ESCONDIDO */
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .pulse-dot {
+            width: 10px;
+            height: 10px;
+            background: #ffc107;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        #btn-copiar {
+            display: none; /* COMEÇA ESCONDIDO */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="glass-card">
+        <h2 class="glitch-title">LIBERAÇÃO <br><span>DO SISTEMA</span></h2>
+        
+        <p class="subtitle" id="instrucoes">Preencha os dados abaixo para gerar sua chave PIX e liberar a Sensi V.I.P agora.</p>
+
+        <div id="area-dados">
+            <input type="text" id="input-nome" class="input-glass" placeholder="Seu Nome Completo">
+            <input type="text" id="input-cpf" class="input-glass" placeholder="Seu CPF (Apenas Números)">
+            
+            <button onclick="gerarCobrancaPix()" class="btn-premium" id="btn-gerar">
+                GERAR PIX AGORA
+                <span class="btn-glow"></span>
+            </button>
+        </div>
+
+        <div class="qr-container" id="caixa-qr">
+            <img id="qr-code-img" src="" alt="QR Code PIX">
+        </div>
+
+        <div class="pix-code-box" id="caixa-copia">
+            <input type="text" id="pix-texto" value="" readonly>
+        </div>
+
+        <button onclick="copiarPix()" class="btn-premium" id="btn-copiar">
+            COPIAR CÓDIGO PIX
+            <span class="btn-glow"></span>
+        </button>
+
+        <div class="status-pagamento" id="status-pagamento">
+            <div class="pulse-dot"></div>
+            <span id="texto-status">Aguardando confirmação do pagamento...</span>
+        </div>
+    </div>
+
+   <script>
+    let idTransacaoAtual = null;
+    let loopVerificacao = null;
+
+    async function gerarCobrancaPix() {
+        const nome = document.getElementById('input-nome').value;
+        const cpf = document.getElementById('input-cpf').value;
+
+        if(!nome || !cpf) {
+            alert("Preencha seu nome e CPF para liberar o PIX, paizão!");
+            return;
+        }
+
+        // Muda o texto do botão pra mostrar que tá processando
+        const btnGerar = document.getElementById('btn-gerar');
+        btnGerar.innerText = "GERANDO CHAVE...";
+        btnGerar.disabled = true;
+
+        try {
+            // Chama o servidor Node.js
+            const resposta = await fetch('http://localhost:3000/api/gerar-pix', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome, cpf })
+            });
+
+            const dados = await resposta.json();
+
+            if (dados.sucesso) {
+                // Esconde os inputs
+                document.getElementById('area-dados').style.display = 'none';
+                document.getElementById('instrucoes').innerText = "Escaneie o QR Code ou copie a chave PIX abaixo para pagar.";
+
+                // Joga os dados reais do Pix na tela
+                document.getElementById('qr-code-img').src = dados.qrCodeUrl;
+                document.getElementById('pix-texto').value = dados.copiaECola;
+                
+                // Faz a mágica aparecer
+                document.getElementById('caixa-qr').style.display = 'block';
+                document.getElementById('caixa-copia').style.display = 'flex';
+                document.getElementById('btn-copiar').style.display = 'block';
+                document.getElementById('status-pagamento').style.display = 'flex';
+                
+                // Salva o ID da Misticpay e começa a perguntar se o pix já caiu
+                idTransacaoAtual = dados.idTransacao;
+                loopVerificacao = setInterval(checarStatus, 3000);
+            } else {
+                alert("Erro ao conectar com a operadora de PIX.");
+                btnGerar.innerText = "GERAR PIX AGORA";
+                btnGerar.disabled = false;
+            }
+        } catch(erro) {
+            console.error(erro);
+            alert("O servidor local (Node.js) não está rodando. Digite 'node server.js' no terminal.");
+            btnGerar.innerText = "GERAR PIX AGORA";
+            btnGerar.disabled = false;
+        }
+    }
+
+    async function checarStatus() {
+        if(!idTransacaoAtual) return;
+
+        const resposta = await fetch(`http://localhost:3000/api/status/${idTransacaoAtual}`);
+        const dados = await resposta.json();
+
+        if(dados.status === 'PAGO') {
+            clearInterval(loopVerificacao); 
+            document.getElementById('status-pagamento').innerHTML = `✅ Pagamento Confirmado! Liberando...`;
+            document.getElementById('status-pagamento').style.color = "#00ff00";
+            
+            // Salva o comprovante V.I.P
+            localStorage.setItem("comprovantePix", idTransacaoAtual);
+            
+            // Joga pro resultado
+            setTimeout(() => {
+                window.location.href = "resultado.html";
+            }, 1500);
+        }
+    }
+
+    function copiarPix() {
+        var copyText = document.getElementById("pix-texto");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(copyText.value);
+        alert("Código PIX copiado! Pague no seu app do banco para liberar.");
+    }
+</script>
+
+</body>
+</html>

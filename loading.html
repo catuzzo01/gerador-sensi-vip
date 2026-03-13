@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processando IA...</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Teko:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="glass-card">
+        <h2 class="glitch-title">SINCRONIZANDO <br><span>IA NEURAL</span></h2>
+        
+        <div class="terminal-box" id="terminal">
+            > Conectando ao servidor...<br>
+        </div>
+
+        <div class="cyber-progress">
+            <div class="cyber-bar"></div>
+        </div>
+
+        <p class="subtitle" style="margin-bottom: 0;">Aguarde. A IA está calculando o recoil e ajustando o DPI ideal...</p>
+    </div>
+
+    <script>
+        const terminal = document.getElementById('terminal');
+        const msgs = [
+            "> Lendo taxa de atualização do display...",
+            "> Otimizando resposta de toque...",
+            "> Injetando script de calibração...",
+            "> Sensi encontrada com sucesso!"
+        ];
+        
+        let i = 0;
+        setInterval(() => {
+            if(i < msgs.length) {
+                terminal.innerHTML += msgs[i] + "<br>";
+                i++;
+            }
+        }, 800);
+
+        setTimeout(() => {
+            window.location = "pagamento.html" // Agora vai pro checkout!
+        }, 4000);
+    </script>
+
+</body>
+</html>
