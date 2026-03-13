@@ -8,8 +8,8 @@ app.use(cors());
 
 // --- CREDENCIAIS SEGURAS ---
 // No Render, usaremos variáveis de ambiente para estas chaves
-const CLIENT_ID = process.env.MISTIC_CI || 'ci_cqyxh0qm2m8rw76'; 
-const CLIENT_SECRET = process.env.MISTIC_CS || 'cs_76t1wkpz0gcdqa2e5jrugfz3p';
+const CLIENT_ID = process.env.MISTIC_CI;
+const CLIENT_SECRET = process.env.MISTIC_CS;
 
 const transacoes = {}; 
 
