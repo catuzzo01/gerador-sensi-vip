@@ -119,14 +119,13 @@
             return;
         }
 
-        // Muda o texto do botão pra mostrar que tá processando
         const btnGerar = document.getElementById('btn-gerar');
         btnGerar.innerText = "GERANDO CHAVE...";
         btnGerar.disabled = true;
 
         try {
-            // Chama o servidor Node.js
-            const resposta = await fetch('http://localhost:3000/api/gerar-pix', {
+            // CONECTADO COM A API OFICIAL DO RENDER
+            const resposta = await fetch('https://gerador-sensi-vip.onrender.com/api/gerar-pix', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nome, cpf })
@@ -135,31 +134,28 @@
             const dados = await resposta.json();
 
             if (dados.sucesso) {
-                // Esconde os inputs
                 document.getElementById('area-dados').style.display = 'none';
                 document.getElementById('instrucoes').innerText = "Escaneie o QR Code ou copie a chave PIX abaixo para pagar.";
 
-                // Joga os dados reais do Pix na tela
                 document.getElementById('qr-code-img').src = dados.qrCodeUrl;
                 document.getElementById('pix-texto').value = dados.copiaECola;
                 
-                // Faz a mágica aparecer
                 document.getElementById('caixa-qr').style.display = 'block';
                 document.getElementById('caixa-copia').style.display = 'flex';
                 document.getElementById('btn-copiar').style.display = 'block';
                 document.getElementById('status-pagamento').style.display = 'flex';
                 
-                // Salva o ID da Misticpay e começa a perguntar se o pix já caiu
                 idTransacaoAtual = dados.idTransacao;
+                // Começa a verificar o status a cada 3 segundos
                 loopVerificacao = setInterval(checarStatus, 3000);
             } else {
-                alert("Erro ao conectar com a operadora de PIX.");
+                alert("Erro ao gerar PIX. Verifique se o CPF é válido.");
                 btnGerar.innerText = "GERAR PIX AGORA";
                 btnGerar.disabled = false;
             }
         } catch(erro) {
             console.error(erro);
-            alert("O servidor local (Node.js) não está rodando. Digite 'node server.js' no terminal.");
+            alert("Erro de conexão com o servidor. Verifique se a API no Render está online.");
             btnGerar.innerText = "GERAR PIX AGORA";
             btnGerar.disabled = false;
         }
@@ -168,21 +164,24 @@
     async function checarStatus() {
         if(!idTransacaoAtual) return;
 
-        const resposta = await fetch(`http://localhost:3000/api/status/${idTransacaoAtual}`);
-        const dados = await resposta.json();
+        try {
+            // CONECTADO COM A API OFICIAL DO RENDER
+            const resposta = await fetch(`https://gerador-sensi-vip.onrender.com/api/status/${idTransacaoAtual}`);
+            const dados = await resposta.json();
 
-        if(dados.status === 'PAGO') {
-            clearInterval(loopVerificacao); 
-            document.getElementById('status-pagamento').innerHTML = `✅ Pagamento Confirmado! Liberando...`;
-            document.getElementById('status-pagamento').style.color = "#00ff00";
-            
-            // Salva o comprovante V.I.P
-            localStorage.setItem("comprovantePix", idTransacaoAtual);
-            
-            // Joga pro resultado
-            setTimeout(() => {
-                window.location.href = "resultado.html";
-            }, 1500);
+            if(dados.status === 'PAGO') {
+                clearInterval(loopVerificacao); 
+                document.getElementById('status-pagamento').innerHTML = `✅ Pagamento Confirmado! Liberando...`;
+                document.getElementById('status-pagamento').style.color = "#00ff00";
+                
+                localStorage.setItem("comprovantePix", idTransacaoAtual);
+                
+                setTimeout(() => {
+                    window.location.href = "resultado.html";
+                }, 1500);
+            }
+        } catch(e) {
+            console.log("Aguardando servidor...");
         }
     }
 
